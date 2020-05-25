@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const routecarros = require('./routes/carros');
 
 app.use(morgan('dev'));
+app.use('/uploads',express.static('uploads'));
 app.use(bodyParser.urlencoded({extended:false})); // apenas dados simples
 app.use(bodyParser.json()); // Json de entrada
 

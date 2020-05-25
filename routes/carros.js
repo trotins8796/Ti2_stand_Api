@@ -1,6 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql").pool;
+const multer = require('multer');
+
+const storage= multer.diskStorage({
+  destination:function(req,file,cb){
+    cb(null,'./uploads/');
+  },
+  filename:function(req,file,cb){
+    cb(null,file.originalname);
+  },
+});
+  const fileFilter = (req,file,cb) => {
+    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+      cb(null,true);
+    }else{
+      cb(null,false);
+    }
+  }
+const upload = multer({
+    storage : storage,
+    limits:({
+      fieldSize: 1024 * 1024 * 5
+    }),
+    fileFilter:fileFilter
+  });
 
 router.get("/", (req, res, next) => {
   mysql.getConnection((error, connection) => {
@@ -15,7 +39,8 @@ router.get("/", (req, res, next) => {
 });
 });
 
-router.post("/", (req, res, next) => {
+router.post("/",upload.single('foto'), (req, res, next) => {
+  console.log(req.file);
   mysql.getConnection((error, connection) => {
     if(error) {return res.status(500).send({ error: error})}
     connection.query(
@@ -28,7 +53,7 @@ router.post("/", (req, res, next) => {
         req.body.cc,
         req.body.descricao,
         req.body.preco,
-        req.body.foto,
+        req.file.path,
       ],
       (error, resultado, fields) => {
         connection.release();
